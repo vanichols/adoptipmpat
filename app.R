@@ -6,6 +6,9 @@ library(readxl)
 
 # global ------------------------------------------------------------------
 
+# Source utility functions (rose plot, distribution plot)
+source("R/utils.R")
+
 data_hpli <- read_rds("data/processed/data_hpli.RDS")
 data_betas <- read_rds("data/processed/data_betas.RDS")
 data_example <- read_rds("data/processed/data_example.RDS")
@@ -21,8 +24,13 @@ ui <- shinydashboard::dashboardPage(
     ### Menu ###
     shinydashboard::sidebarMenu(
       id = "sidebar_menu",
-      menuItem("  Pesticide Data", tabName = "pest", icon = icon("bugs")),
-      menuItem("  Performance Data", tabName = "perf", icon = icon("leaf"))
+      menuItem("  Pesticide Data", tabName = "pest", icon = icon("bugs")),
+      #menuItem("  Performance Data", tabName = "perf", icon = icon("leaf")),
+      menuItem(
+        "  Compare Pesticide Compounds",
+        tabName = "compare",
+        icon = icon("flask-vial")
+      )
     ),
     
     # Pesticide data entry specific sidebar content
@@ -34,7 +42,9 @@ ui <- shinydashboard::dashboardPage(
         style = "padding-left: 15px; color: white; font-size: 12px;",
         p("• Select a compound from the dropdown"),
         p("• Load score will auto-populate"),
-        p("• Enter the quantity of compound applied (in consistent units for the entire table)"),
+        p(
+          "• Enter the quantity of compound applied (in consistent units for the entire table)"
+        ),
         p("• Compound's risk score will be calculated automatically"),
         p("• System's total risk score is displayed in the summary")
       ),
@@ -80,18 +90,19 @@ ui <- shinydashboard::dashboardPage(
          Last updated: Nov 2025<br>"
       )
     )
-  ), #--end of sidebar
+  ),
+  #--end of sidebar
   
   
   ###### Body ####################################################################
   shinydashboard::dashboardBody(
-    tags$head(
-      tags$style(HTML("
+    tags$head(tags$style(
+      HTML("
         .content-wrapper, .right-side {
           background-color: #f4f4f4;
         }
-      "))
-    ),
+      ")
+    )),
     
     tabItems(
       ###### Body: Pesticide table tab ######
@@ -164,22 +175,165 @@ ui <- shinydashboard::dashboardPage(
             )
           )
         )
-      ), #--end of tab
+      ),
+      #--end of tab
       
-      ###### Body: Performance tab ######
+      
+      # ###### Body: Performance tab ######
+      # tabItem(
+      #   tabName = "perf",
+      #   fluidRow(
+      #     box(
+      #       title = "Performance Data",
+      #       status = "primary",
+      #       solidHeader = TRUE,
+      #       width = 12,
+      #       p("This is the Performance Data tab.")
+      #     )
+      #   )
+      # )
+      ###### Body: Two Substance Tab ######
+      
       tabItem(
-        tabName = "perf",
+        tabName = "compare",
         fluidRow(
+          # Substance1 selection
           box(
-            title = "Performance Data",
+            title = "First substance selection",
+            status = "primary",
+            # "info",
+            solidHeader = TRUE,
+            width = 4,
+            height = "275px",
+            
+            # Filter options
+            selectizeInput(
+              "substance_category1",
+              label = NULL,
+              choices = NULL,
+              # populated from data in the server
+              multiple = TRUE,
+              selected = NULL,
+              options = list(placeholder = "Filter by category")
+            ),
+            selectizeInput(
+              "substance_origins1",
+              label = NULL,
+              choices = NULL,
+              # populated from data in the server
+              multiple = TRUE,
+              selected = NULL,
+              options = list(placeholder = "Filter by origin")
+            ),
+            selectInput(
+              "substance_double1",
+              "Select Substance:",
+              choices = NULL,
+              # populated from data in the server
+              selected = NULL
+            )
+          ),
+          
+          # Substance2 selection
+          box(
+            title = "Second substance selection",
+            status = "primary",
+            # "info",
+            solidHeader = TRUE,
+            width = 4,
+            height = "275px",
+            
+            # Filter options
+            selectizeInput(
+              "substance_category2",
+              label = NULL,
+              choices = NULL,
+              # populated from data in the server
+              multiple = TRUE,
+              selected = NULL,
+              options = list(placeholder = "Filter by category")
+            ),
+            selectizeInput(
+              "substance_origins2",
+              label = NULL,
+              choices = NULL,
+              # populated from data in the server
+              multiple = TRUE,
+              selected = NULL,
+              options = list(placeholder = "Filter by origin")
+            ),
+            
+            # Substance selection
+            selectInput(
+              "substance_double2",
+              "Select Substance:",
+              choices = NULL,
+              # populated from data in the server
+              selected = NULL
+            )
+          ),
+          
+          # Blank space
+          #column(width = 4)
+          
+          # Download Data box (replaced the blank space)
+          box(
+            title = "Download Load Score Details",
             status = "primary",
             solidHeader = TRUE,
-            width = 12,
-            p("This is the Performance Data tab.")
+            width = 4,
+            height = "275px",
+            # Added consistent height
+            div(
+              style = "text-align: center; padding: 20px;",
+              p("Download the detailed load score data for the selected substance:"),
+              br(),
+              downloadButton(
+                "download_data2",
+                "Download Data (TSV)",
+                class = "btn-success btn-lg",
+                # Changed to green
+                icon = icon("download"),
+                style = "background-color: #ffd74a; border-color: #ffd74a;"  # Custom green color
+              )
+              
+            )
           )
+          
+        ),
+        
+        fluidRow(
+          # Rose plot first substance
+          box(
+            title = "First Substance Load Scores",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 4,
+            plotOutput("rose_plot1", height = "500px")
+          ),
+          
+          # Rose plot second substance
+          box(
+            title = "Second Substance Load Scores",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 4,
+            plotOutput("rose_plot2", height = "500px")
+          ),
+          #--figure with distributions
+          box(
+            title = "Load Score(s) Relative to All Substances",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 4,
+            plotOutput("dist_plot_both", height = "500px")
+          ),
         )
+        
+        
       )
-    )#--end of dashboard body   
+      #--end of tab
+    )#--end of dashboard body
   )
 )
 
@@ -187,7 +341,6 @@ ui <- shinydashboard::dashboardPage(
 
 
 server <- function(input, output, session) {
-  
   # Initialize reactive values for both tables
   values1 <- reactiveValues()
   values2 <- reactiveValues()
@@ -249,7 +402,8 @@ server <- function(input, output, session) {
         if (nrow(matching_row) > 0) {
           data$Load_Score[i] <- matching_row$load_score[1]
           # Calculate Risk_Score
-          if (!is.na(data$Quantity_Applied[i]) && data$Quantity_Applied[i] > 0) {
+          if (!is.na(data$Quantity_Applied[i]) &&
+              data$Quantity_Applied[i] > 0) {
             data$Risk_Score[i] <- data$Load_Score[i] * data$Quantity_Applied[i]
           } else {
             data$Risk_Score[i] <- 0
@@ -326,7 +480,7 @@ server <- function(input, output, session) {
     if (!is.null(input$hot_table1)) {
       # Get the updated data
       updated_data <- hot_to_r(input$hot_table1)
-
+      
       # Process each row for auto-population and calculations
       for (i in 1:nrow(updated_data)) {
         if (!is.na(updated_data$Compound[i]) &&
@@ -336,7 +490,7 @@ server <- function(input, output, session) {
           if (nrow(matching_row) > 0) {
             updated_data$Load_Score[i] <- matching_row$load_score[1]
           }
-
+          
           # Calculate Risk_Score (Load_Score * Quantity_Applied)
           if (!is.na(updated_data$Quantity_Applied[i]) &&
               updated_data$Quantity_Applied[i] > 0) {
@@ -350,11 +504,11 @@ server <- function(input, output, session) {
           updated_data$Risk_Score[i] <- 0
         }
       }
-
+      
       values1$data <- updated_data
     }
   })
-
+  
   # Update data when table is edited
   observeEvent(input$hot_table2, {
     if (!is.null(input$hot_table2)) {
@@ -395,18 +549,18 @@ server <- function(input, output, session) {
       # Filter to only filled rows (compounds that have been selected)
       filled_data <- values1$data[values1$data$Compound != "" &
                                     !is.na(values1$data$Compound), ]
-
+      
       if (nrow(filled_data) > 0) {
         grand_total <- sum(values1$data$Risk_Score, na.rm = TRUE)
-
+        
         # Find min and max risk scores among filled rows
         risk_min <- min(filled_data$Risk_Score, na.rm = TRUE)
         risk_max <- max(filled_data$Risk_Score, na.rm = TRUE)
-
+        
         # Find compounds with min and max risk scores
         min_compound <- filled_data$Compound[which(filled_data$Risk_Score == risk_min)[1]]
         max_compound <- filled_data$Compound[which(filled_data$Risk_Score == risk_max)[1]]
-
+        
         paste(
           "Lowest Risk Application:",
           "\n",
@@ -426,7 +580,7 @@ server <- function(input, output, session) {
       }
     }
   })
-
+  
   output$summary2 <- renderText({
     if (!is.null(values2$data)) {
       # Filter to only filled rows (compounds that have been selected)
@@ -476,7 +630,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   output$item_count1 <- renderValueBox({
     if (!is.null(values1$data)) {
       total_items <- sum(values1$data$Quantity_Applied, na.rm = TRUE)
@@ -489,7 +643,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   output$filled_rows1 <- renderValueBox({
     if (!is.null(values1$data)) {
       filled_rows <- sum(values1$data$Compound != "", na.rm = TRUE)
@@ -502,7 +656,7 @@ server <- function(input, output, session) {
       )
     }
   })
-
+  
   output$total_risk2 <- renderValueBox({
     if (!is.null(values2$data)) {
       grand_total <- sum(values2$data$Risk_Score, na.rm = TRUE)
@@ -541,7 +695,7 @@ server <- function(input, output, session) {
     }
   })
   
-
+  
 }
 
 # run app -----------------------------------------------------------------

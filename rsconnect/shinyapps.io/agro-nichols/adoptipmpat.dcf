@@ -1,0 +1,12 @@
+name: adoptipmpat
+title: adoptipmpat
+username: agro-nichols
+account: agro-nichols
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 16135348
+bundleId: 11211413
+url: https://agro-nichols.shinyapps.io/adoptipmpat/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
