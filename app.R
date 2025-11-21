@@ -3,6 +3,8 @@ library(rhandsontable)
 library(shinydashboard)
 library(tidyverse)
 library(readxl)
+library(ggnewscale)
+library(ggrepel)
 
 # global ------------------------------------------------------------------
 
@@ -274,31 +276,31 @@ ui <- shinydashboard::dashboardPage(
           ),
           
           # Blank space
-          #column(width = 4)
+          column(width = 4)
           
-          # Download Data box (replaced the blank space)
-          box(
-            title = "Download Load Score Details",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 4,
-            height = "275px",
-            # Added consistent height
-            div(
-              style = "text-align: center; padding: 20px;",
-              p("Download the detailed load score data for the selected substance:"),
-              br(),
-              downloadButton(
-                "download_data2",
-                "Download Data (TSV)",
-                class = "btn-success btn-lg",
-                # Changed to green
-                icon = icon("download"),
-                style = "background-color: #ffd74a; border-color: #ffd74a;"  # Custom green color
-              )
-              
-            )
-          )
+          # # Download Data box (replaced the blank space)
+          # box(
+          #   title = "Download Load Score Details",
+          #   status = "primary",
+          #   solidHeader = TRUE,
+          #   width = 4,
+          #   height = "275px",
+          #   # Added consistent height
+          #   div(
+          #     style = "text-align: center; padding: 20px;",
+          #     p("Download the detailed load score data for the selected substance:"),
+          #     br(),
+          #     downloadButton(
+          #       "download_data2",
+          #       "Download Data (TSV)",
+          #       class = "btn-success btn-lg",
+          #       # Changed to green
+          #       icon = icon("download"),
+          #       style = "background-color: #ffd74a; border-color: #ffd74a;"  # Custom green color
+          #     )
+          #     
+          #   )
+          # )
           
         ),
         
@@ -694,6 +696,217 @@ server <- function(input, output, session) {
       )
     }
   })
+  
+  # Compare substances tab =====================================================
+  
+  ###### Populate filter lists (runs once at app startup) ######
+  
+  observeEvent(TRUE, {
+    # Substance category filter
+    updateSelectInput(session,
+                      "substance_category1",
+                      choices = unique(data_hpli$compound_category) |>
+                        sort())
+    # Substance origin filter
+    updateSelectInput(session,
+                      "substance_origins1",
+                      choices = unique(data_hpli$compound_origin) |>
+                        sort())
+    
+  }, once = TRUE)
+  
+  observeEvent(TRUE, {
+    # Substance type filter
+    updateSelectInput(session,
+                      "substance_category2",
+                      choices = unique(data_hpli$compound_category) |>
+                        sort())
+    # Substance origin filter
+    updateSelectInput(session,
+                      "substance_origins2",
+                      choices = unique(data_hpli$compound_origin) |>
+                        sort())
+    
+  }, once = TRUE)
+  
+  
+  
+  ###### Populate list of substance (reacts on filters) ######
+  #--data for second tab, 1st choice
+  substance_choices1 <- reactive({
+    data_hpli_filtered1 <- data_hpli
+    
+    # Filter by origin only if an origin is selected
+    if (!is.null(input$substance_origins1) &&
+        length(input$substance_origins1) > 0) {
+      data_hpli_filtered1 <-
+        data_hpli_filtered1 |>
+        dplyr::filter(compound_origin %in% input$substance_origins1)
+    }
+    
+    # Filter by type only if a category is selected
+    if (!is.null(input$substance_category1) &&
+        length(input$substance_category1) > 0) {
+      data_hpli_filtered1 <-
+        data_hpli_filtered1 |>
+        dplyr::filter(compound_category %in% input$substance_category1)
+    }
+    
+    
+    
+    # Format final substance list
+    data_hpli_filtered1 |>
+      dplyr::pull(compound) |>
+      unique() |>
+      sort()
+  })
+  
+  #--data for second tab, 2nd choice
+  substance_choices2 <- reactive({
+    data_hpli_filtered2 <- data_hpli
+    
+    # Filter by origin only if an origin is selected
+    if (!is.null(input$substance_origins2) &&
+        length(input$substance_origins2) > 0) {
+      data_hpli_filtered2 <-
+        data_hpli_filtered2 |>
+        dplyr::filter(compound_origin %in% input$substance_origins2)
+    }
+    
+    # Filter by type only if a category is selected
+    if (!is.null(input$substance_category2) &&
+        length(input$substance_category2) > 0) {
+      data_hpli_filtered2 <-
+        data_hpli_filtered2 |>
+        dplyr::filter(compound_category %in% input$substance_category2)
+    }
+    
+    
+    
+    # Format final substance list
+    data_hpli_filtered2 |>
+      dplyr::pull(compound) |>
+      unique() |>
+      sort()
+  })
+  
+  ###### Selected substance1 based on user choice ######
+  observe({
+    choices1 <- substance_choices1()
+    selected1 <- isolate(input$substance_double1)
+    if (!is.null(selected1))
+      selected1 <- selected1[selected1 %in% choices1]
+    updateSelectInput(session,
+                      "substance_double1",
+                      choices = choices1,
+                      selected = selected1)
+  })
+  
+  # If current selection is no longer valid (e.g. after a new filter is applied), clear it
+  observe({
+    valid_choices <- substance_choices1()
+    current <- input$substance_double1
+    if (!is.null(current) && !current %in% valid_choices) {
+      updateSelectInput(session, "substance_double1", selected = "")
+    }
+  })
+  
+  ###### Selected substance2 based on user choice ######
+  observe({
+    choices2 <- substance_choices2()
+    selected2 <- isolate(input$substance_double2)
+    if (!is.null(selected2))
+      selected2 <- selected2[selected2 %in% choices2]
+    updateSelectInput(session,
+                      "substance_double2",
+                      choices = choices2,
+                      selected = selected2)
+  })
+  
+  # If current selection is no longer valid (e.g. after a new filter is applied), clear it
+  observe({
+    valid_choices <- substance_choices2()
+    current <- input$substance_double2
+    if (!is.null(current) && !current %in% valid_choices) {
+      updateSelectInput(session, "substance_double2", selected = "")
+    }
+  })
+  
+  
+  ###### Display HPL visualisation graph ######
+  output$rose_plot1 <- renderPlot({
+    req(input$substance_double1)
+    fxn_Make_Rose_Plot(compound_name = input$substance_double1,
+                       data = data_hpli)
+  })
+  
+  output$rose_plot2 <- renderPlot({
+    req(input$substance_double2)
+    fxn_Make_Rose_Plot(compound_name = input$substance_double2,
+                       data = data_hpli)
+  })
+  
+  output$dist_plot_both <- renderPlot({
+    req(input$substance_double1)
+    fxn_Make_Distribution_Plot(
+      compound_names = c(input$substance_double1, input$substance_double2),
+      data = data_hpli
+    )
+  })
+  
+  
+  
+  ###### Download data option ######
+  #--something is funky here
+  # output$download_data2 <- downloadHandler(
+  #   filename = function() {
+  #     req(input$substance_double1)
+  #     req(input$substance_double2)
+  #     paste0(
+  #       "load_score_details_", #--make sure only allowed characters in name
+  #       gsub(
+  #         "[^A-Za-z0-9]",
+  #         input$substance_double1),
+  #         "_",
+  #       gsub(
+  #           "[^A-Za-z0-9]",
+  #           input$substance_double2),
+  #       "_",
+  #       Sys.Date(),
+  #       ".tsv"
+  #     )
+  #   },
+  #   content = function(file) {
+  #     req(input$substance_double1)
+  #     #--what should go here?
+  #     data_sub <-
+  #       data_hpli |>
+  #       filter(compound_name %in% c(input$substance_double1, input$substance_double2))
+  #     
+  #     display_data2 <-
+  #       data_sub |>
+  #       dplyr::mutate_if(is.numeric, round, 3) |>
+  #       dplyr::select(
+  #         compound,
+  #         compound_type,
+  #         env_raw,
+  #         eco.terr_raw,
+  #         eco.aqua_raw,
+  #         hum_raw,
+  #         load_score,
+  #         missing_share
+  #       )
+  #     
+  #     write.table(
+  #       display_data2,
+  #       file,
+  #       sep = "\t",
+  #       row.names = FALSE,
+  #       col.names = TRUE,
+  #       quote = FALSE
+  #     )
+  #   }
+  # )
   
   
 }

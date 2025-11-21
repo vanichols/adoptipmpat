@@ -10,7 +10,7 @@
 # data <- data_hpli
 
 fxn_Make_Rose_Plot <- function(compound_name = "diquat",
-                                 data = adopt_hpli) {
+                                 data = data_hpli) {
   metric_colors2 <- c(
     "Environmental fate" =  "#31a354",
     "Ecotoxicity (terrestrial)" = "#fd8d3c",

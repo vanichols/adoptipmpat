@@ -20,6 +20,17 @@
       ],
       "Hash": "065ae649b05f1ff66bb0c793107508f5"
     },
+    "PKI": {
+      "Package": "PKI",
+      "Version": "0.1-15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "base64enc"
+      ],
+      "Hash": "ec0620ffbe13af5d017a92077085965e"
+    },
     "R6": {
       "Package": "R6",
       "Version": "2.6.1",
@@ -50,6 +61,17 @@
         "utils"
       ],
       "Hash": "5ea2700d21e038ace58269ecdbeb9ec0"
+    },
+    "RcppTOML": {
+      "Package": "RcppTOML",
+      "Version": "0.2.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "23eeca7d3c7d63fc7449108c0a66178c"
     },
     "S7": {
       "Package": "S7",
@@ -469,6 +491,16 @@
       ],
       "Hash": "4b29bf698d0c7bdb9f1e4976e7ade41d"
     },
+    "ggnewscale": {
+      "Package": "ggnewscale",
+      "Version": "0.5.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "ggplot2"
+      ],
+      "Hash": "598a725f2cc27599c251279f19ccde6f"
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "4.0.1",
@@ -490,6 +522,22 @@
         "withr"
       ],
       "Hash": "1bfa14b2a1668b3569dafb0478b2636b"
+    },
+    "ggrepel": {
+      "Package": "ggrepel",
+      "Version": "0.9.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "ggplot2",
+        "grid",
+        "rlang",
+        "scales",
+        "withr"
+      ],
+      "Hash": "3d4156850acc1161f2f24bc61c9217c1"
     },
     "glue": {
       "Package": "glue",
@@ -723,6 +771,17 @@
       ],
       "Hash": "64f308bf1fbf5f856cdf4b4c7c0ce51b"
     },
+    "jose": {
+      "Package": "jose",
+      "Version": "1.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "jsonlite",
+        "openssl"
+      ],
+      "Hash": "cf5ae308441d505b8c7e4b08e0e510aa"
+    },
     "jquerylib": {
       "Package": "jquerylib",
       "Version": "0.1.4",
@@ -865,6 +924,18 @@
         "askpass"
       ],
       "Hash": "d5811dade9cd3a34a9038a45f1a59bae"
+    },
+    "packrat": {
+      "Package": "packrat",
+      "Version": "0.9.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "tools",
+        "utils"
+      ],
+      "Hash": "d3289899c84c65def1a783ea0a9ea0eb"
     },
     "pillar": {
       "Package": "pillar",
@@ -1127,6 +1198,31 @@
       ],
       "Hash": "efe19db0fde0fff13cea7eec6f695021"
     },
+    "rsconnect": {
+      "Package": "rsconnect",
+      "Version": "1.6.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "PKI",
+        "R",
+        "cli",
+        "curl",
+        "digest",
+        "jsonlite",
+        "lifecycle",
+        "openssl",
+        "packrat",
+        "renv",
+        "rlang",
+        "rstudioapi",
+        "snowflakeauth",
+        "tools",
+        "utils",
+        "yaml"
+      ],
+      "Hash": "eb3a821be1190b7d3828ad9981e89be8"
+    },
     "rstudioapi": {
       "Package": "rstudioapi",
       "Version": "0.17.1",
@@ -1257,6 +1353,22 @@
         "stringr"
       ],
       "Hash": "58767e44739b76965332e8a4fe3f91f1"
+    },
+    "snowflakeauth": {
+      "Package": "snowflakeauth",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "RcppTOML",
+        "cli",
+        "curl",
+        "jose",
+        "jsonlite",
+        "openssl",
+        "rlang"
+      ],
+      "Hash": "cc966d509015e3eeaf0a09ab9b4b535c"
     },
     "sourcetools": {
       "Package": "sourcetools",
