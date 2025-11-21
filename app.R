@@ -5,10 +5,10 @@ library(tidyverse)
 library(readxl)
 
 # global ------------------------------------------------------------------
-# Note: These data files would need to exist in your app directory
-# data_hpli <- read_rds("data/processed/data_hpli.RDS")
-# data_betas <- read_rds("data/processed/data_betas.RDS")  
-# data_example <- read_rds("data/processed/data_example.RDS")
+
+data_hpli <- read_rds("data/processed/data_hpli.RDS")
+data_betas <- read_rds("data/processed/data_betas.RDS")
+data_example <- read_rds("data/processed/data_example.RDS")
 
 # ui ----------------------------------------------------------------------
 
@@ -35,8 +35,8 @@ ui <- shinydashboard::dashboardPage(
         p("• Select a compound from the dropdown"),
         p("• Load score will auto-populate"),
         p("• Enter the quantity of compound applied (in consistent units for the entire table)"),
-        p("• The compound's risk score will be calculated automatically"),
-        p("• The total risk score for the pesticide package is displayed at the bottom")
+        p("• Compound's risk score will be calculated automatically"),
+        p("• System's total risk score is displayed in the summary")
       ),
       br(),
       div(
@@ -44,8 +44,8 @@ ui <- shinydashboard::dashboardPage(
         actionButton("add_row", "Add Row", class = "btn-primary btn-sm", style = "margin-bottom: 10px;"),
         br(),
         actionButton("remove_row", "Remove Row", class = "btn-warning btn-sm", style = "margin-bottom: 15px;"),
-        br(),
-        numericInput("max_rows", "Max Rows:", value = 5, min = 1, max = 50, width = "150px")
+        # br(),
+        # numericInput("max_rows", "Max Rows:", value = 5, min = 1, max = 50, width = "150px")
       )
     ),
     
@@ -59,19 +59,20 @@ ui <- shinydashboard::dashboardPage(
                z-index: 1000;",
       # Try different approaches for the image
       # # Option 1: Standard approach (what you have)
-      # img(
-      #   src = "adopt-ipm_logo-clean.png",
-      #   height = "50px",
-      #   width = "auto",
-      #   style = "margin-bottom: 5px;",
-      #   onerror = "this.style.display='none'; console.log('Image failed to load');"
-      # ),
-      #Option 2: Alternative - uncomment if above doesn't work
-      tags$img(
-        src = "adopt-ipm_logo-clean.png",
+      img(
+        #src = "adopt-ipm_logo-clean.png",
+        src = "test.png",
         height = "50px",
-        style = "margin-bottom: 5px;"
+        width = "auto",
+        style = "margin-bottom: 5px;",
+        onerror = "this.style.display='none'; console.log('Image failed to load');"
       ),
+      # #Option 2: Alternative - uncomment if above doesn't work
+      # tags$img(
+      #   src = "test.png",
+      #   height = "50px",
+      #   style = "margin-bottom: 5px;"
+      # ),
       br(),
       HTML(
         "<a href='https://adopt-ipm.eu/' target='_blank'>adopt-ipm.eu</a><br>
@@ -134,7 +135,7 @@ ui <- shinydashboard::dashboardPage(
         fluidRow(
           box(
             title = "System #2 - Pesticides applied",
-            status = "info",
+            status = "success",
             solidHeader = TRUE,
             width = 6,
             height = "225px",
@@ -142,7 +143,7 @@ ui <- shinydashboard::dashboardPage(
           ),
           box(
             title = "System #2 - Insight",
-            status = "info",
+            status = "success",
             solidHeader = TRUE,
             width = 6,
             height = "225px",
@@ -152,7 +153,7 @@ ui <- shinydashboard::dashboardPage(
         fluidRow(
           box(
             title = "System #2 - Summary",
-            status = "info",
+            status = "success",
             solidHeader = TRUE,
             width = 12,
             height = "175px",
@@ -218,7 +219,7 @@ server <- function(input, output, session) {
   
   # Add row functionality - affects both tables
   observeEvent(input$add_row, {
-    if (nrow(values1$data) < input$max_rows) {
+    if (nrow(values1$data) < 50) {
       new_row <- data.frame(
         Compound = "",
         Load_Score = 0,
@@ -354,6 +355,40 @@ server <- function(input, output, session) {
     }
   })
 
+  # Update data when table is edited
+  observeEvent(input$hot_table2, {
+    if (!is.null(input$hot_table2)) {
+      # Get the updated data
+      updated_data <- hot_to_r(input$hot_table2)
+      
+      # Process each row for auto-population and calculations
+      for (i in 1:nrow(updated_data)) {
+        if (!is.na(updated_data$Compound[i]) &&
+            updated_data$Compound[i] != "") {
+          # Auto-populate load score based on Compound
+          matching_row <- data_hpli[data_hpli$compound == updated_data$Compound[i], ]
+          if (nrow(matching_row) > 0) {
+            updated_data$Load_Score[i] <- matching_row$load_score[1]
+          }
+          
+          # Calculate Risk_Score (Load_Score * Quantity_Applied)
+          if (!is.na(updated_data$Quantity_Applied[i]) &&
+              updated_data$Quantity_Applied[i] > 0) {
+            updated_data$Risk_Score[i] <- updated_data$Load_Score[i] * updated_data$Quantity_Applied[i]
+          } else {
+            updated_data$Risk_Score[i] <- 0
+          }
+        } else {
+          # Reset values2 if no Compound selected
+          updated_data$Load_Score[i] <- 0
+          updated_data$Risk_Score[i] <- 0
+        }
+      }
+      
+      values2$data <- updated_data
+    }
+  })
+  
   # Summary output
   output$summary1 <- renderText({
     if (!is.null(values1$data)) {
@@ -392,12 +427,49 @@ server <- function(input, output, session) {
     }
   })
 
+  output$summary2 <- renderText({
+    if (!is.null(values2$data)) {
+      # Filter to only filled rows (compounds that have been selected)
+      filled_data <- values2$data[values2$data$Compound != "" &
+                                    !is.na(values2$data$Compound), ]
+      
+      if (nrow(filled_data) > 0) {
+        grand_total <- sum(values2$data$Risk_Score, na.rm = TRUE)
+        
+        # Find min and max risk scores among filled rows
+        risk_min <- min(filled_data$Risk_Score, na.rm = TRUE)
+        risk_max <- max(filled_data$Risk_Score, na.rm = TRUE)
+        
+        # Find compounds with min and max risk scores
+        min_compound <- filled_data$Compound[which(filled_data$Risk_Score == risk_min)[1]]
+        max_compound <- filled_data$Compound[which(filled_data$Risk_Score == risk_max)[1]]
+        
+        paste(
+          "Lowest Risk Application:",
+          "\n",
+          min_compound,
+          " (",
+          format(risk_min, digits = 2, nsmall = 2),
+          ")",
+          "\n\nHighest Risk Application:",
+          "\n",
+          max_compound,
+          " (",
+          format(risk_max, digits = 2, nsmall = 2),
+          ")"
+        )
+      } else {
+        "No compounds have been selected yet."
+      }
+    }
+  })
+  
   # Value boxes for dashboard display
   output$total_risk1 <- renderValueBox({
     if (!is.null(values1$data)) {
       grand_total <- sum(values1$data$Risk_Score, na.rm = TRUE)
       valueBox(
-        value = format(grand_total, digits = 2, nsmall = 2),
+        value = format(grand_total, digits = 2, nsmall = 0),
         subtitle = "Total Risk Score",
         icon = icon("exclamation-triangle"),
         color = "red"
@@ -412,7 +484,8 @@ server <- function(input, output, session) {
         value = format(total_items, digits = 2, nsmall = 2),
         subtitle = "Total Quantity of Compounds Applied",
         icon = icon("cubes"),
-        color = "blue"
+        #color = "blue"
+        color = "red"
       )
     }
   })
@@ -424,11 +497,50 @@ server <- function(input, output, session) {
         value = filled_rows,
         subtitle = "Number of Applications Entered",
         icon = icon("list"),
-        color = "yellow"
+        #color = "yellow"
+        color = "red"
       )
     }
   })
 
+  output$total_risk2 <- renderValueBox({
+    if (!is.null(values2$data)) {
+      grand_total <- sum(values2$data$Risk_Score, na.rm = TRUE)
+      valueBox(
+        value = format(grand_total, digits = 2, nsmall = 0),
+        subtitle = "Total Risk Score",
+        icon = icon("exclamation-triangle"),
+        color = "yellow"
+      )
+    }
+  })
+  
+  output$item_count2 <- renderValueBox({
+    if (!is.null(values2$data)) {
+      total_items <- sum(values2$data$Quantity_Applied, na.rm = TRUE)
+      valueBox(
+        value = format(total_items, digits = 2, nsmall = 2),
+        subtitle = "Total Quantity of Compounds Applied",
+        icon = icon("cubes"),
+        #color = "blue"
+        color = "yellow"
+      )
+    }
+  })
+  
+  output$filled_rows2 <- renderValueBox({
+    if (!is.null(values2$data)) {
+      filled_rows <- sum(values2$data$Compound != "", na.rm = TRUE)
+      valueBox(
+        value = filled_rows,
+        subtitle = "Number of Applications Entered",
+        icon = icon("list"),
+        #color = "yellow"
+        color = "yellow"
+      )
+    }
+  })
+  
 
 }
 
