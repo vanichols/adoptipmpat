@@ -1,17 +1,15 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    https://shiny.posit.co/
-#
-
 library(shiny)
+library(shiny)
+library(shinydashboard)
+library(tidyverse)
+library(readxl)
 
-# Define UI for application that draws a histogram
+
+
+# ui ----------------------------------------------------------------------
+
 ui <- fluidPage(
-
+  
     # Application title
     titlePanel("Old Faithful Geyser Data"),
 
