@@ -576,6 +576,176 @@ ui <- shinydashboard::dashboardPage(
 
 
 server <- function(input, output, session) {
+  
+  # Single substance tab =======================================================
+  
+  #--Populate filter lists (runs once at app startup)
+  
+  
+  observeEvent(TRUE, {
+    # Substance category filter
+    updateSelectInput(session,
+                      "substance_category",
+                      choices = unique(data_hpli$compound_category) |>
+                        sort())
+    # Substance origin filter
+    updateSelectInput(session,
+                      "substance_origins",
+                      choices = unique(data_hpli$compound_origin) |>
+                        sort())
+  }, once = TRUE)
+  
+  
+  
+  ###### Populate list of substance (reacts on filters) ######
+  #--data for second tab, 1st choice
+  substance_choices <- reactive({
+    data_hpli_filtered <- data_hpli
+    
+    # Filter by origin only if an origin is selected
+    if (!is.null(input$substance_origins) &&
+        length(input$substance_origins) > 0) {
+      data_hpli_filtered <-
+        data_hpli_filtered |>
+        dplyr::filter(compound_origin %in% input$substance_origins)
+    }
+    
+    # Filter by category only if a category is selected
+    if (!is.null(input$substance_category) &&
+        length(input$substance_category) > 0) {
+      data_hpli_filtered <-
+        data_hpli_filtered |>
+        dplyr::filter(compound_category %in% input$substance_category)
+    }
+    
+    
+    # Format final substance list
+    data_hpli_filtered |>
+      dplyr::pull(compound) |>
+      unique() |>
+      sort()
+  })
+  
+  ###### Selected substance based on user choice ######
+  observe({
+    choices <- substance_choices()
+    selected <- isolate(input$substance_single)
+    if (!is.null(selected))
+      selected <- selected[selected %in% choices]
+    updateSelectInput(session,
+                      "substance_single",
+                      choices = choices,
+                      selected = selected)
+    updateSelectInput(session, "substances_compare", choices = choices)
+  })
+  
+  # If current selection is no longer valid (e.g. after a new filter is applied), clear it
+  observe({
+    valid_choices <- substance_choices()
+    current <- input$substance_single
+    if (!is.null(current) && !current %in% valid_choices) {
+      updateSelectInput(session, "substance_single", selected = "")
+      #updateSelectInput(session, "substances_compare", selected = "")
+    }
+  })
+  
+  ###### Reduce data based on selected substance ######
+  single_substance_data <- reactive({
+    req(input$substance_single)
+    data_hpli <- data_hpli
+    data_hpli[data_hpli$compound == input$substance_single, ]
+  })
+  
+  ###### Display substance data ######
+  output$substance_info <- renderText({
+    # Make it reactive to both inputs
+    choices <- substance_choices()
+    selected <- input$substance_single
+    # Clear out if nothing selected or selection invalid
+    if (is.null(selected) ||
+        selected == "" || !selected %in% choices) {
+      return("")
+    }
+    # Normal case (if a substance is selected)
+    data_sub <- single_substance_data()
+    if (nrow(data_sub) > 0) {
+      paste0(
+        "Substance: ",
+        input$substance_single,
+        "\n\n",
+        "      CAS: ",
+        unique(data_sub$cas),
+        "\n",
+        " Category: ",
+        unique(data_sub$compound_type),
+        "\n",
+        "   Origin: ",
+        unique(data_sub$compound_origin),
+        "\n",
+        #" Sub type: ", unique(data_sub$sub_compound_category), "\n",
+        "   Family: ",
+        unique(data_sub$compound_group),
+        "\n\n",
+        "     Load: ",
+        round(unique(data_sub$load_score), 3)
+      )
+    }
+  })
+  
+  ###### Display load visualization as rose plot ######
+  output$rose_plot <- renderPlot({
+    req(input$substance_single)
+    fxn_Make_Rose_Plot(compound_name = input$substance_single,
+                       data = data_hpli)
+  })
+  
+  ###### Display load on distribution ######
+  output$dist_plot <- renderPlot({
+    req(input$substance_single)
+    fxn_Make_Distribution_Plot(compound_names = input$substance_single,
+                               data = data_hpli)
+  })
+  ###### Download data option ######
+  output$download_data <- downloadHandler(
+    filename = function() {
+      req(input$substance_single)
+      paste0(
+        "load_score_details_",
+        gsub("[^A-Za-z0-9]", "_", input$substance_single),
+        "_",
+        Sys.Date(),
+        ".tsv"
+      )
+    },
+    content = function(file) {
+      req(input$substance_single)
+      data_sub <- single_substance_data()
+      display_data <-
+        data_sub |>
+        dplyr::mutate_if(is.numeric, round, 3) |>
+        dplyr::select(
+          compound,
+          compound_type,
+          env_raw,
+          eco.terr_raw,
+          eco.aqua_raw,
+          hum_raw,
+          load_score,
+          missing_share
+        )
+      
+      write.table(
+        display_data,
+        file,
+        sep = "\t",
+        row.names = FALSE,
+        col.names = TRUE,
+        quote = FALSE
+      )
+    }
+  )
+  
+  # System comparison =======================================================
   # Initialize reactive values for both tables
   values1 <- reactiveValues()
   values2 <- reactiveValues()
