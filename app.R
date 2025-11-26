@@ -28,6 +28,10 @@ ui <- shinydashboard::dashboardPage(
       id = "sidebar_menu",
       menuItem("  Welcome", tabName = "welcome", icon = icon("campground")),
       menuItem(
+        "  Single Substance View",
+        tabName = "single",
+        icon = icon("flask")
+      ), menuItem(
         "  Susbtance Comparison View",
         tabName = "subcomp",
         icon = icon("flask-vial")
@@ -201,6 +205,141 @@ ui <- shinydashboard::dashboardPage(
           ),
       #--end tab
       
+      ###### Single Substance Tab ######
+      tabItem(
+        tabName = "single",
+        ## First row
+        fluidRow(
+          # Substance selection box
+          box(
+            title = "Substance Selection",
+            status = "primary",
+            # "info",
+            solidHeader = TRUE,
+            width = 4,
+            height = "275px",
+            # Added consistent height
+            
+            # Filter options
+            selectizeInput(
+              "substance_category",
+              label = NULL,
+              choices = NULL,
+              # populated from data in the server
+              multiple = TRUE,
+              selected = NULL,
+              options = list(placeholder = "Filter by category")
+            ),
+            selectizeInput(
+              "substance_origins",
+              label = NULL,
+              choices = NULL,
+              # populated from data in the server
+              multiple = TRUE,
+              selected = NULL,
+              options = list(placeholder = "Filter by origin")
+            ),
+            
+            # Substance selection
+            selectInput(
+              "substance_single",
+              "Select Substance:",
+              choices = NULL,
+              # populated from data in the server
+              selected = NULL
+            )
+          ),
+          
+          # Substance information box
+          box(
+            title = "Substance Information",
+            status = "primary",
+            # "info",
+            solidHeader = TRUE,
+            width = 4,
+            height = "275px",
+            # Added consistent height
+            verbatimTextOutput("substance_info")
+          ),
+          
+          # Download Data box - replaced the data table
+          box(
+            title = "Download Load Score Details",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 4,
+            height = "275px",
+            # Added consistent height
+            div(
+              style = "text-align: center; padding: 20px;",
+              p("Download the detailed load score data for the selected substance:"),
+              br(),
+              downloadButton(
+                "download_data",
+                "Download Data (TSV)",
+                class = "btn-success btn-lg",
+                # Changed to green
+                icon = icon("download"),
+                style = "background-color: #ffd74a; border-color: #ffd74a;"  # Custom green color
+              )  
+              
+            )
+          )
+        ),
+        ## Second row, two graphs (one rose and one distribution), blank area not sure what to do with
+        fluidRow(
+          #--Rose plot box
+          box(
+            title = "Load Scores by Compartment",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 4,
+            plotOutput("rose_plot", height = "500px")
+          ),
+          #--Distribution box
+          box(
+            title = "Load Score Relative to All Substances",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 4,
+            plotOutput("dist_plot", height = "500px")
+          ),
+          # Information and links box
+          box(
+            title = "Additional Resources",
+            status = "info",
+            solidHeader = TRUE,
+            width = 4,
+            div(
+              style = "padding: 15px;",
+              h4("About Load Scores"),
+              p("Load scores represent a relative toxicity burden ."),
+              p(
+                "The visualization shows a substance's load scores for each compartment, as calculated by Vandervoode et al. (in review)"
+              ),
+              br(),
+              h4("Useful Links"),
+              tags$ul(tags$li(
+                tags$a(
+                  "Pesticide Properties Database",
+                  href = "https://sitem.herts.ac.uk/aeru/ppdb/",
+                  target = "_blank"
+                )
+              ), tags$li(
+                tags$a(
+                  "PhD manuscript with more details and background",
+                  href = "https://sytra.be/publication/three-tools-reduction-pesticide-impacts/",
+                  target = "_blank"
+                )
+              )),
+              br(),
+            )
+          )
+        )
+        
+      ),
+      #--end of first tab
+      
       ###### Body: Pesticide and performance table tab ######
       tabItem(
         tabName = "sys",
@@ -277,7 +416,6 @@ ui <- shinydashboard::dashboardPage(
       
     
       ###### Body: Two Substance Tab ######
-      
       tabItem(
         tabName = "subcomp",
         fluidRow(
