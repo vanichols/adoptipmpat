@@ -54,8 +54,7 @@ ui <- shinydashboard::dashboardPage(
         p(
           "• Enter the quantity of compound applied (in consistent units for the entire table)"
         ),
-        p("• Compound's risk score will be calculated automatically"),
-        p("• System's total risk score is displayed in the summary")
+        p("• Compound's risk score will be calculated automatically")
       ),
       br(),
       div(
@@ -340,82 +339,82 @@ ui <- shinydashboard::dashboardPage(
       ),
       #--end of first tab
       
-      ###### Body: Pesticide and performance table tab ######
+      ###### System insights tab ######
       tabItem(
         tabName = "sys",
         # First system
         fluidRow(
           box(
-            title = "System #1 - Pesticides applied",
+            title = "Pesticides applied",
             status = "primary",
             solidHeader = TRUE,
             width = 6,
             height = "225px",
-            rHandsontableOutput("hot_table1")
+            rHandsontableOutput("pest_hottable")
           ),
           box(
-            title = "System #1 - Insight",
+            title = "Pesticides insight",
             status = "primary",
             solidHeader = TRUE,
             width = 6,
             height = "225px",
-            verbatimTextOutput("summary1")
+            verbatimTextOutput("pest_insight")
           )
         ),
         fluidRow(
           box(
-            title = "System #1 - Summary",
+            title = "Pesticides impact summary",
             status = "primary",
             solidHeader = TRUE,
             width = 12,
             height = "175px",
             fluidRow(
-              column(4, valueBoxOutput("total_risk1", width = 12)),
-              column(4, valueBoxOutput("item_count1", width = 12)),
-              column(4, valueBoxOutput("filled_rows1", width = 12))
+              column(4, valueBoxOutput("pest_totalrisk", width = 12)),
+              column(4, valueBoxOutput("pest_itemcount", width = 12)),
+              column(4, valueBoxOutput("pest_rows", width = 12))
             )
           )
         ),
         
-        # Second system
-        fluidRow(
-          box(
-            title = "System #2 - Pesticides applied",
-            status = "success",
-            solidHeader = TRUE,
-            width = 6,
-            height = "225px",
-            rHandsontableOutput("hot_table2")
-          ),
-          box(
-            title = "System #2 - Insight",
-            status = "success",
-            solidHeader = TRUE,
-            width = 6,
-            height = "225px",
-            verbatimTextOutput("summary2")
-          )
-        ),
-        fluidRow(
-          box(
-            title = "System #2 - Summary",
-            status = "success",
-            solidHeader = TRUE,
-            width = 12,
-            height = "175px",
-            fluidRow(
-              column(4, valueBoxOutput("total_risk2", width = 12)),
-              column(4, valueBoxOutput("item_count2", width = 12)),
-              column(4, valueBoxOutput("filled_rows2", width = 12))
-            )
-          )
-        )
+      #   # Second system
+      #   fluidRow(
+      #     box(
+      #       title = "System #2 - Pesticides applied",
+      #       status = "success",
+      #       solidHeader = TRUE,
+      #       width = 6,
+      #       height = "225px",
+      #       rHandsontableOutput("hot_table2")
+      #     ),
+      #     box(
+      #       title = "System #2 - Insight",
+      #       status = "success",
+      #       solidHeader = TRUE,
+      #       width = 6,
+      #       height = "225px",
+      #       verbatimTextOutput("summary2")
+      #     )
+      #   ),
+      #   fluidRow(
+      #     box(
+      #       title = "System #2 - Summary",
+      #       status = "success",
+      #       solidHeader = TRUE,
+      #       width = 12,
+      #       height = "175px",
+      #       fluidRow(
+      #         column(4, valueBoxOutput("total_risk2", width = 12)),
+      #         column(4, valueBoxOutput("item_count2", width = 12)),
+      #         column(4, valueBoxOutput("filled_rows2", width = 12))
+      #       )
+      #     )
+      #   )
       ),
       #--end of tab
       
       
     
-      ###### Body: Two Substance Tab ######
+      ######Substance comparison tab ######
       tabItem(
         tabName = "subcomp",
         fluidRow(
@@ -744,6 +743,212 @@ server <- function(input, output, session) {
       )
     }
   )
+  # System insights =======================================================
+  # Initialize reactive values for both tables
+  values <- reactiveValues()
+  
+  # Initialize both data frames
+  observe({
+    if (is.null(values$data)) {
+      initial_rows <- 5
+      values$data <- data.frame(
+        Compound = rep("", initial_rows),
+        Load_Score = rep(0, initial_rows),
+        Quantity_Applied = rep(0, initial_rows),
+        Risk_Score = rep(0, initial_rows),
+        stringsAsFactors = FALSE
+      )
+    }
+    
+  })
+  
+  # Add row functionality - affects both tables
+  observeEvent(input$add_row, {
+    if (nrow(values$data) < 50) {
+      new_row <- data.frame(
+        Compound = "",
+        Load_Score = 0,
+        Quantity_Applied = 0,
+        Risk_Score = 0,
+        stringsAsFactors = FALSE
+      )
+      values$data <- rbind(values$data, new_row)
+    }
+  })
+  
+  # Remove row functionality - affects both tables
+  observeEvent(input$remove_row, {
+    if (nrow(values$data) > 1) {
+      values$data <- values$data[-nrow(values$data), ]
+    }
+  })
+  
+  # Helper function to update calculations
+  update_calculations <- function(data) {
+    for (i in 1:nrow(data)) {
+      if (data$Compound[i] != "" && !is.na(data$Compound[i])) {
+        # Look up load score based on Compound
+        matching_row <- data_hpli[data_hpli$compound == data$Compound[i], ]
+        if (nrow(matching_row) > 0) {
+          data$Load_Score[i] <- matching_row$load_score[1]
+          # Calculate Risk_Score
+          if (!is.na(data$Quantity_Applied[i]) &&
+              data$Quantity_Applied[i] > 0) {
+            data$Risk_Score[i] <- data$Load_Score[i] * data$Quantity_Applied[i]
+          } else {
+            data$Risk_Score[i] <- 0
+          }
+        }
+      } else {
+        data$Load_Score[i] <- 0
+        data$Risk_Score[i] <- 0
+      }
+    }
+    return(data)
+  }
+  
+  # Render table
+  output$pest_hottable <- renderRHandsontable({
+    if (!is.null(values$data)) {
+      values$data <- update_calculations(values$data)
+      
+      rhandsontable(
+        values$data,
+        rowHeaders = TRUE,
+        height = 250,
+        colWidths = c(180, 100, 140, 100)
+      ) %>%
+        hot_col(
+          "Compound",
+          type = "dropdown",
+          source = as.character(data_hpli$compound),
+          allowInvalid = FALSE
+        ) %>%
+        hot_col(
+          "Load_Score",
+          readOnly = TRUE,
+          type = "numeric",
+          format = "0.000"
+        ) %>%
+        hot_col("Quantity_Applied", type = "numeric", format = "0.000") %>%
+        hot_col("Risk_Score", readOnly = TRUE, format = "0.000") %>%
+        hot_context_menu(allowRowEdit = FALSE, allowColEdit = FALSE)
+    }
+  })
+  
+  # Update data when table is edited
+  observeEvent(input$pest_hottable, {
+    if (!is.null(input$pest_hottable)) {
+      # Get the updated data
+      updated_data <- hot_to_r(input$pest_hottable)
+      
+      # Process each row for auto-population and calculations
+      for (i in 1:nrow(updated_data)) {
+        if (!is.na(updated_data$Compound[i]) &&
+            updated_data$Compound[i] != "") {
+          # Auto-populate load score based on Compound
+          matching_row <- data_hpli[data_hpli$compound == updated_data$Compound[i], ]
+          if (nrow(matching_row) > 0) {
+            updated_data$Load_Score[i] <- matching_row$load_score[1]
+          }
+          
+          # Calculate Risk_Score (Load_Score * Quantity_Applied)
+          if (!is.na(updated_data$Quantity_Applied[i]) &&
+              updated_data$Quantity_Applied[i] > 0) {
+            updated_data$Risk_Score[i] <- updated_data$Load_Score[i] * updated_data$Quantity_Applied[i]
+          } else {
+            updated_data$Risk_Score[i] <- 0
+          }
+        } else {
+          # Reset values1 if no Compound selected
+          updated_data$Load_Score[i] <- 0
+          updated_data$Risk_Score[i] <- 0
+        }
+      }
+      
+      values$data <- updated_data
+    }
+  })
+  
+  
+  # Summary output
+  output$pest_insight <- renderText({
+    if (!is.null(values$data)) {
+      # Filter to only filled rows (compounds that have been selected)
+      filled_data <- values$data[values$data$Compound != "" &
+                                    !is.na(values$data$Compound), ]
+      
+      if (nrow(filled_data) > 0) {
+        grand_total <- sum(values$data$Risk_Score, na.rm = TRUE)
+        
+        # Find min and max risk scores among filled rows
+        risk_min <- min(filled_data$Risk_Score, na.rm = TRUE)
+        risk_max <- max(filled_data$Risk_Score, na.rm = TRUE)
+        
+        # Find compounds with min and max risk scores
+        min_compound <- filled_data$Compound[which(filled_data$Risk_Score == risk_min)[1]]
+        max_compound <- filled_data$Compound[which(filled_data$Risk_Score == risk_max)[1]]
+        
+        paste(
+          "Lowest Risk Application:",
+          "\n",
+          min_compound,
+          " (",
+          format(risk_min, digits = 2, nsmall = 2),
+          ")",
+          "\n\nHighest Risk Application:",
+          "\n",
+          max_compound,
+          " (",
+          format(risk_max, digits = 2, nsmall = 2),
+          ")"
+        )
+      } else {
+        "No compounds have been selected yet."
+      }
+    }
+  })
+  
+  
+  # Value boxes for dashboard display
+  output$pest_totalrisk <- renderValueBox({
+    if (!is.null(values$data)) {
+      grand_total <- sum(values$data$Risk_Score, na.rm = TRUE)
+      valueBox(
+        value = format(grand_total, digits = 2, nsmall = 0),
+        subtitle = "Total Risk Score",
+        icon = icon("exclamation-triangle"),
+        color = "red"
+      )
+    }
+  })
+  
+  output$pest_itemcount <- renderValueBox({
+    if (!is.null(values$data)) {
+      total_items <- sum(values$data$Quantity_Applied, na.rm = TRUE)
+      valueBox(
+        value = format(total_items, digits = 2, nsmall = 2),
+        subtitle = "Total Quantity of Compounds Applied",
+        icon = icon("cubes"),
+        #color = "blue"
+        color = "red"
+      )
+    }
+  })
+  
+  output$pest_rows <- renderValueBox({
+    if (!is.null(values$data)) {
+      filled_rows <- sum(values$data$Compound != "", na.rm = TRUE)
+      valueBox(
+        value = filled_rows,
+        subtitle = "Number of Applications Entered",
+        icon = icon("list"),
+        #color = "yellow"
+        color = "red"
+      )
+    }
+  })
+  
   
   # System comparison =======================================================
   # Initialize reactive values for both tables
