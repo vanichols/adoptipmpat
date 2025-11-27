@@ -6,6 +6,8 @@ library(readxl)
 library(ggnewscale)
 library(ggrepel)
 
+#mmissing some comma or something
+
 # global ------------------------------------------------------------------
 
 # Source utility functions (rose plot, distribution plot)
@@ -16,6 +18,7 @@ data_betas <- read_rds("data/processed/data_betas.RDS")
 data_example <- read_rds("data/processed/data_example.RDS")
 
 # ui ----------------------------------------------------------------------
+
 
 ui <- shinydashboard::dashboardPage(
   ###### Header ##################################################################
@@ -31,14 +34,27 @@ ui <- shinydashboard::dashboardPage(
         "  Single Substance View",
         tabName = "single",
         icon = icon("flask")
-      ), menuItem(
+      ),
+      menuItem(
         "  Susbtance Comparison View",
         tabName = "subcomp",
         icon = icon("flask-vial")
       ),
-      menuItem("  Single System Insights", tabName = "sys", icon = icon("bug")),
-      menuItem("  System Comparison", tabName = "syscomp", icon = icon("bugs")),
-      menuItem("  Example case study", tabName = "example", icon = icon("bacon"))
+      menuItem(
+        "  Single System Insights",
+        tabName = "sys",
+        icon = icon("bug")
+      ),
+      menuItem(
+        "  System Comparison",
+        tabName = "syscomp",
+        icon = icon("bugs")
+      ),
+      menuItem(
+        "  Example case study",
+        tabName = "example",
+        icon = icon("bacon")
+      )
       
     ),
     
@@ -107,101 +123,108 @@ ui <- shinydashboard::dashboardPage(
     )),
     
     tabItems(
+      
       ###### Welcome tab ######
-          tabItem(tabName = "welcome",
-                  fluidRow(
-                    # Custom green title
-                    box(
-                      title = "Welcome to PESTO",
-                      status = "primary",
-                      solidHeader = TRUE,
-                      width = 12,
-                      
-                      h3("Getting Started"),
-                      p("Welcome to our dashboard! Below is an overview of the tabs and some useful resources:",
-                        style = "font-size: 16px; margin-bottom: 20px;"),
-                      
-                      h4("Dashboard Contents", style = "color: #2c3e50; margin-top: 25px;"),
-                      tags$ul(style = "line-height: 1.8; font-size: 15px;",
-                              tags$li(
-                                tags$strong("Single substance view", style = "color: #2a6e38;"),
-                                " presents detailed information on the impact of substances used in agricultural settings (as calculated by the ",
-                                tags$em("Harmonized Pesticide Load Index", style = "color: #8e44ad;"), 
-                                ")"
-                              ),
-                              tags$li(
-                                tags$strong("Substance comparison view", style = "color: #2a6e38;"),
-                                " allows side-by-side comparison of substance impacts"
-                              ),
-                              tags$li(
-                                tags$strong("Single system insights", style = "color: #2a6e38;"),
-                                " presents a wholistic performance of a management system (based on the ", 
-                                tags$em("Harmonized Pesticide Load Index", style = "color: #8e44ad;"), 
-                                ")"
-                              ),
-                              tags$li(
-                                tags$strong("System comparison", style = "color: #2a6e38;"),
-                                " allows side-by-side comparison of performances"
-                              ),
-                              tags$li(
-                                tags$strong("Example case study", style = "color: #2a6e38;"),
-                                " presents an example comparing field cropping and strip cropping in the Netherlands"
-                              )
-                      ),
-                      
-                      hr(style = "margin: 30px 0; border-top: 2px solid #bdc3c7;"),
-                      
-                      h4("Additional Resources", style = "color: #2c3e50; margin-bottom: 15px;"),
-                      tags$ul(style = "line-height: 2; font-size: 15px;",
-                              tags$li(
-                                "Read the ",
-                                tags$strong("dissertation", style = "color: #2980b9;"),
-                                " describing calculation of the ",
-                                tags$em("Harmonized Pesticide Load Index", style = "color: #8e44ad;"),
-                                " (publication is in review): ",
-                                tags$a(
-                                  "Vandevoorde 2025",
-                                  href = "https://sytra.be/publication/three-tools-reduction-pesticide-impacts/",
-                                  target = "_blank",
-                                  style = "color: #eb5e23; text-decoration: none; font-weight: bold; 
-                          border-bottom: 1px dotted #eb5e23;"
-                                )
-                              ),
-                              tags$li(
-                                "Read the ",
-                                tags$strong("EU Horizon 2020 project deliverable", style = "color: #2980b9;"),
-                                " describing the performance tool this methodology is based on: ",
-                                tags$a(
-                                  "Benefits of IPM to endusers",
-                                  href = "https://cordis.europa.eu/project/id/633999/results",
-                                  target = "_blank",
-                                  style = "color: #f39c12; text-decoration: none; font-weight: bold; 
-                          border-bottom: 1px dotted #f39c12;"
-                                )
-                              ),
-                              tags$li(
-                                "Read the ",
-                                tags$strong("accompanying publication", style = "color: #2980b9;"),
-                                " to this dashboard: ",
-                                tags$a(
-                                  "Publication in progress, here is the project website",
-                                  href = "https://adopt-ipm.eu/",
-                                  target = "_blank",
-                                  style = "color: #27ae60; text-decoration: none; font-weight: bold; 
-                          border-bottom: 1px dotted #27ae60;"
-                                )
-                              )
-                      ),
-                      
-                      div(style = "margin-top: 30px; padding: 15px; background-color: #ecf0f1; border-radius: 5px;",
-                          h5("TL;DR?", style = "color: #2c3e50; margin-bottom: 10px;"),
-                          p("Navigate through the different tabs using the sidebar to explore all available features. 
-                Each section provides detailed insights into pesticide impacts and agricultural management systems.",
-                            style = "margin-bottom: 0; font-size: 14px; color: #34495e;")
-                      )
-                    )
-                  )
+      tabItem(tabName = "welcome", fluidRow(
+        # Custom green title
+        box(
+          title = "Welcome to PESTO",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12,
+          
+          h3("Getting Started"),
+          p(
+            "Welcome to our dashboard! Below is an overview of the tabs and some useful resources:",
+            style = "font-size: 16px; margin-bottom: 20px;"
           ),
+          
+          h4("Dashboard Contents", style = "color: #2c3e50; margin-top: 25px;"),
+          tags$ul(
+            style = "line-height: 1.8; font-size: 15px;",
+            tags$li(
+              tags$strong("Single substance view", style = "color: #eb5e23;"),
+              " presents detailed information on the impact of substances used in agricultural settings (as calculated by the ",
+              tags$em("Harmonized Pesticide Load Index", style = "color: #8e44ad;"),
+              ")"
+            ),
+            tags$li(
+              tags$strong("Substance comparison view", style = "color: #eb5e23;"),
+              " allows side-by-side comparison of substance impacts"
+            ),
+            tags$li(
+              tags$strong("Single system insights", style = "color: #f39c12;"),
+              " presents a wholistic performance of a management system (based on the ",
+              tags$em("Harmonized Pesticide Load Index", style = "color: #8e44ad;"),
+              ")"
+            ),
+            tags$li(
+              tags$strong("System comparison", style = "color: #f39c12;"),
+              " allows side-by-side comparison of performances"
+            ),
+            tags$li(
+              tags$strong("Example case study", style = "color: #27ae60;"),
+              " presents an example comparing field cropping and strip cropping in the Netherlands"
+            )
+          ),
+          
+          hr(style = "margin: 30px 0; border-top: 2px solid #bdc3c7;"),
+          
+          h4("Additional Resources", style = "color: #2c3e50; margin-bottom: 15px;"),
+          tags$ul(
+            style = "line-height: 2; font-size: 15px;",
+            tags$li(
+              "Read the ",
+              tags$strong("dissertation", style = "color: #2980b9;"),
+              " describing calculation of the ",
+              tags$em("Harmonized Pesticide Load Index", style = "color: #8e44ad;"),
+              " (publication is in review): ",
+              tags$a(
+                "Vandevoorde 2025",
+                href = "https://sytra.be/publication/three-tools-reduction-pesticide-impacts/",
+                target = "_blank",
+                style = "color: #eb5e23; text-decoration: none; font-weight: bold;
+                          border-bottom: 1px dotted #eb5e23;"
+              )
+            ),
+            tags$li(
+              "Read the ",
+              tags$strong("EU Horizon 2020 project deliverable", style = "color: #2980b9;"),
+              " describing the performance tool this methodology is based on: ",
+              tags$a(
+                "Benefits of IPM to endusers",
+                href = "https://cordis.europa.eu/project/id/633999/results",
+                target = "_blank",
+                style = "color: #f39c12; text-decoration: none; font-weight: bold;
+                          border-bottom: 1px dotted #f39c12;"
+              )
+            ),
+            tags$li(
+              "Read the ",
+              tags$strong("accompanying publication", style = "color: #2980b9;"),
+              " to this dashboard: ",
+              tags$a(
+                "Publication in progress, here is the project website",
+                href = "https://adopt-ipm.eu/",
+                target = "_blank",
+                style = "color: #27ae60; text-decoration: none; font-weight: bold;
+                          border-bottom: 1px dotted #27ae60;"
+              )
+            )
+          ),
+          
+          div(
+            style = "margin-top: 30px; padding: 15px; background-color: #ecf0f1; border-radius: 5px;",
+            h5("TL;DR?", style = "color: #2c3e50; margin-bottom: 10px;"),
+            p(
+              "Navigate through the different tabs using the sidebar to explore all available features.
+                Each section provides detailed insights into pesticide impacts and agricultural management systems.",
+              style = "margin-bottom: 0; font-size: 14px; color: #34495e;"
+            )
+          )
+        )
+      )
+      ), 
       #--end tab
       
       ###### Single Substance Tab ######
@@ -280,7 +303,7 @@ ui <- shinydashboard::dashboardPage(
                 # Changed to green
                 icon = icon("download"),
                 style = "background-color: #ffd74a; border-color: #ffd74a;"  # Custom green color
-              )  
+              )
               
             )
           )
@@ -337,83 +360,8 @@ ui <- shinydashboard::dashboardPage(
         )
         
       ),
-      #--end of first tab
-      
-      ###### System insights tab ######
-      tabItem(
-        tabName = "sys",
-        # First system
-        fluidRow(
-          box(
-            title = "Pesticides applied",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            height = "225px",
-            rHandsontableOutput("pest_hottable")
-          ),
-          box(
-            title = "Pesticides insight",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            height = "225px",
-            verbatimTextOutput("pest_insight")
-          )
-        ),
-        fluidRow(
-          box(
-            title = "Pesticides impact summary",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 12,
-            height = "175px",
-            fluidRow(
-              column(4, valueBoxOutput("pest_totalrisk", width = 12)),
-              column(4, valueBoxOutput("pest_itemcount", width = 12)),
-              column(4, valueBoxOutput("pest_rows", width = 12))
-            )
-          )
-        ),
-        
-      #   # Second system
-      #   fluidRow(
-      #     box(
-      #       title = "System #2 - Pesticides applied",
-      #       status = "success",
-      #       solidHeader = TRUE,
-      #       width = 6,
-      #       height = "225px",
-      #       rHandsontableOutput("hot_table2")
-      #     ),
-      #     box(
-      #       title = "System #2 - Insight",
-      #       status = "success",
-      #       solidHeader = TRUE,
-      #       width = 6,
-      #       height = "225px",
-      #       verbatimTextOutput("summary2")
-      #     )
-      #   ),
-      #   fluidRow(
-      #     box(
-      #       title = "System #2 - Summary",
-      #       status = "success",
-      #       solidHeader = TRUE,
-      #       width = 12,
-      #       height = "175px",
-      #       fluidRow(
-      #         column(4, valueBoxOutput("total_risk2", width = 12)),
-      #         column(4, valueBoxOutput("item_count2", width = 12)),
-      #         column(4, valueBoxOutput("filled_rows2", width = 12))
-      #       )
-      #     )
-      #   )
-      ),
       #--end of tab
       
-      
-    
       ######Substance comparison tab ######
       tabItem(
         tabName = "subcomp",
@@ -552,30 +500,83 @@ ui <- shinydashboard::dashboardPage(
         )
         
         
-      )
+      ),
       #--end of tab
-      # ###### Body: Performance tab ######
-      # tabItem(
-      #   tabName = "perf",
-      #   fluidRow(
-      #     box(
-      #       title = "Performance Data",
-      #       status = "primary",
-      #       solidHeader = TRUE,
-      #       width = 12,
-      #       p("This is the Performance Data tab.")
-      #     )
-      #   )
-      # )
-    )#--end of dashboard body
-  )
+      
+      
+      ###### System insights tab ######
+      tabItem(
+        tabName = "sys",
+        # First system
+        fluidRow(
+          box(
+            title = "Pesticides applied",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            height = "225px",
+            rHandsontableOutput("pest_hottable")
+          ),
+          box(
+            title = "Pesticides insight",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 6,
+            height = "225px",
+            verbatimTextOutput("pest_insight")
+          )
+        ),
+        fluidRow(
+          box(
+            title = "Pesticides impact summary",
+            status = "primary",
+            solidHeader = TRUE,
+            width = 12,
+            height = "175px",
+            fluidRow(
+              column(4, valueBoxOutput("pest_totalrisk", width = 12)),
+              column(4, valueBoxOutput("pest_itemcount", width = 12)),
+              column(4, valueBoxOutput("pest_rows", width = 12))
+            )
+          )
+        )
+      ),
+      #--end of tab
+      
+      ###### Two System comparison tab ######
+      tabItem(tabName = "syscomp", fluidRow(
+        # Custom green title
+        box(
+          title = "Coming soon",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12
+        )
+      )),
+      #--end tab
+      
+      
+      ###### Example case study tab ######
+      tabItem(tabName = "example", fluidRow(
+        # Custom green title
+        box(
+          title = "Coming soon",
+          status = "primary",
+          solidHeader = TRUE,
+          width = 12
+        )
+      )) #--end tab
+      
+    ) #--end of dashboard body
+  ) #--end of dashboard page
 )
+
+
 
 # server ------------------------------------------------------------------
 
 
 server <- function(input, output, session) {
-  
   # Single substance tab =======================================================
   
   #--Populate filter lists (runs once at app startup)
@@ -876,7 +877,7 @@ server <- function(input, output, session) {
     if (!is.null(values$data)) {
       # Filter to only filled rows (compounds that have been selected)
       filled_data <- values$data[values$data$Compound != "" &
-                                    !is.na(values$data$Compound), ]
+                                   !is.na(values$data$Compound), ]
       
       if (nrow(filled_data) > 0) {
         grand_total <- sum(values$data$Risk_Score, na.rm = TRUE)
