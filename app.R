@@ -5,6 +5,7 @@ library(tidyverse)
 library(readxl)
 library(ggnewscale)
 library(ggrepel)
+library(ggpattern)
 
 # global ------------------------------------------------------------------
 

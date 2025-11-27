@@ -91,7 +91,7 @@ create_comparison_selection_row <- function() {
           tags$li("The rightmost plot shows both substances relative to all substances in the database")
         ),
         br(),
-        p("This comparison helps you understand the relative environmental impact of different pesticide substances.",
+        p("This comparison helps you understand the relative impact of different pesticide substances.",
           style = "font-size: 13px; color: #666; font-style: italic;")
       )
     )
