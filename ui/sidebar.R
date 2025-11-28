@@ -69,12 +69,13 @@ create_system_sidebar2 <- function(){
   condition = "input.sidebar_menu == 'single'",
   h4("Plot Options"),
   p("Choose to see details for each metric"),
+  checkboxInput("detailed_view", "Detailed plot view", value = FALSE),
   div(
     style = "padding: 15px; color: white; font-size: 12px;",
     p("• Quality of the data ranges from 1 (low) to 5 (high)"),
     p("• Data may be missing (X, dashed filling) or not reported (NR)"),
-    ),
-  checkboxInput("detailed_view", "Detailed plot view", value = FALSE)
+    )
+  
   )
 }
 

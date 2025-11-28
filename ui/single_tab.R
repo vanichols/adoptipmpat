@@ -14,7 +14,7 @@ create_single_selection_row <- function() {
       status = "primary",
       solidHeader = TRUE,
       width = 4,
-      height = "275px",
+      height = "300px",
       
       selectizeInput(
         "substance_category",
@@ -47,7 +47,7 @@ create_single_selection_row <- function() {
       status = "primary",
       solidHeader = TRUE,
       width = 4,
-      height = "275px",
+      height = "300px",
       verbatimTextOutput("substance_info")
     ),
     
@@ -57,7 +57,7 @@ create_single_selection_row <- function() {
       status = "primary",
       solidHeader = TRUE,
       width = 4,
-      height = "275px",
+      height = "300px",
       div(
         style = "text-align: center; padding: 20px;",
         p("Download the detailed load score data for the selected substance:"),

@@ -118,8 +118,16 @@ server <- function(input, output, session) {
   ###### Display load visualization as rose plot ######
   output$rose_plot <- renderPlot({
     req(input$substance_single)
-    fxn_Make_Rose_Plot(compound_name = input$substance_single,
-                       data = data_hpli)
+    if (input$detailed_view) {
+      
+      fxn_Make_Detailed_Rose_Plot(compound_name = input$substance_single,
+                         data = data_noe)  
+    } else {
+      fxn_Make_Rose_Plot(compound_name = input$substance_single,
+                         data = data_hpli)  
+    }
+    
+    
   })
   
   ###### Display load on distribution ######
