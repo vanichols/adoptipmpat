@@ -32,12 +32,13 @@ create_sidebar <- function() {
     ),
     
     # Conditional panels for different tabs
-    create_system_sidebar(),
+    create_system_sidebar1(),
+    create_system_sidebar2(),
     create_footer()
   )
 }
 
-create_system_sidebar <- function() {
+create_system_sidebar1 <- function() {
   conditionalPanel(
     condition = "input.sidebar_menu == 'sys'",
     br(),
@@ -53,11 +54,27 @@ create_system_sidebar <- function() {
     ),
     br(),
     div(
-      style = "padding-left: 15px;",
+      style = "padding: 15px;",
       actionButton("add_row", "Add Row", class = "btn-primary btn-sm", style = "margin-bottom: 10px;"),
       br(),
       actionButton("remove_row", "Remove Row", class = "btn-warning btn-sm", style = "margin-bottom: 15px;")
     )
+    
+  )
+}
+
+# Conditional panel for "single" tab
+create_system_sidebar2 <- function(){
+  conditionalPanel(
+  condition = "input.sidebar_menu == 'single'",
+  h4("Plot Options"),
+  p("Choose to see details for each metric"),
+  div(
+    style = "padding: 15px; color: white; font-size: 12px;",
+    p("• Quality of the data ranges from 1 (low) to 5 (high)"),
+    p("• Data may be missing (X, dashed filling) or not reported (NR)"),
+    ),
+  checkboxInput("detailed_view", "Detailed plot view", value = FALSE)
   )
 }
 
